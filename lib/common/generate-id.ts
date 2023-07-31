@@ -7,6 +7,7 @@ export function getRandomKey() {
 }
 
 /**
+ * JavaScriptのシフト演算が32bit変換を行ってしまうため文字列でシフト演算する
  * ID Format(64bit): 0 + timestamp(41bit) + random key(10bit) + sequence number(12bit)
  * ex:
  *   nowUnixTimeStamp:2023/07/31 00:00:00

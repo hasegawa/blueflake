@@ -1,33 +1,5 @@
-import { DynamoDBClient, GetItemCommand, PutItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb"
 import { getNowDate, getRandomKey, makeBlueFlakeID } from "../../common/generate-id"
-
-
-const dynamoDbClient = new DynamoDBClient({})
-
-async function getItem(tableName:string, timeStampAndRandomKey:string) {
-    const command = new GetItemCommand({
-        TableName: tableName,
-        Key: {
-            timeStampAndRandomKey:  {S: timeStampAndRandomKey}
-        }
-    })
-    return await dynamoDbClient.send(command)
-}
-
-async function registItem(tableName:string, timeStampAndRandomKey:string, sequenceNumber:number) {
-    const command = new PutItemCommand({
-        TableName: tableName,
-        Item: {
-            timeStampAndRandomKey:  {
-                S: timeStampAndRandomKey
-            },
-            sequenceNumber: {
-                N: sequenceNumber.toString()
-            }
-        }
-    })
-    return await dynamoDbClient.send(command)
-}
+import { getItem, registItem, updateItem } from "../../dynamodb/db";
 
 export const handler = async () => {
     const tableName = process.env.SEQUENCE_TABLE_NAME!
@@ -36,12 +8,18 @@ export const handler = async () => {
     const randomKey = getRandomKey()
     const timeStampAndRandomKey = nowDate.getTime().toString() + randomKey.toString().padStart(4, "0")
     const item = await getItem(tableName, timeStampAndRandomKey)
-    const sequenceNumber = item?.Item?.sequenceNumber;
-    if (sequenceNumber === undefined) {
-        // 新規登録
+    if (item?.Item?.sequenceNumber?.N === undefined) {
+        // アイテム新規登録
         registItem(tableName, timeStampAndRandomKey, 1)
         return makeBlueFlakeID(nowDate, randomKey, 1)
+    } else {
+        // シーケンス番号カウントアップ
+        const sequenceNumber = parseInt(item?.Item?.sequenceNumber?.N);
+        if (sequenceNumber < 4096) {
+            updateItem(tableName, timeStampAndRandomKey, sequenceNumber , sequenceNumber + 1)
+            return makeBlueFlakeID(nowDate, randomKey, sequenceNumber + 1)
+        } else {
+            throw new Error("server busy")
+        }
     }
-
-    return 0
 }

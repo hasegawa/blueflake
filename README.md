@@ -38,10 +38,13 @@ IDの内部的なフォーマットは以下で生成しています。
 ミリ秒あたりで同時アクセスがあった場合にランダムなキーを割り当てて、衝突を防ぐ役割のキーになります。
 
 ## シーケンス番号部分
-DynamoDBで管理する予定の番号です。タイムスタンプ + ランダムキーでも衝突があった場合にDB側のアイテムで採番するシーケンス番号になります。
+DynamoDBで管理する番号です。タイムスタンプ + ランダムキーでも衝突があった場合にDB側のアイテムで採番するシーケンス番号になります。
 
 実装のPRは下記です。
 https://github.com/hasegawa/blueflake/pull/2
+
+# 論理構成図
+![AWS構成図](./drawio/blueflake.svg)
 
 # AWS CDKのcommand
 * `npm run build`   compile typescript to js

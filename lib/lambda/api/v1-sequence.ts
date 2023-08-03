@@ -1,7 +1,11 @@
+import middy from "@middy/core";
+import validator from "@middy/validator";
+import { transpileSchema } from '@middy/validator/transpile'
 import { getNowDate, getRandomKey, makeBlueFlakeID } from "../../common/generate-id"
 import { getItem, registItem, updateItem } from "../../dynamodb/db";
+import { sequenceSchema } from "../schema/validate-schema";
 
-export const handler = async () => {
+const lambdaHandler = middy(async(event:any, context:any) => {
     const tableName = process.env.SEQUENCE_TABLE_NAME!
     const nowDate =  getNowDate();
     // timestamp + randomkey(ex.0001)をパーティションキーとしている
@@ -22,4 +26,7 @@ export const handler = async () => {
             throw new Error("server busy")
         }
     }
-}
+})
+
+export const handler = lambdaHandler;
+handler.use(validator({eventSchema: transpileSchema(sequenceSchema)}))

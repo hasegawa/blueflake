@@ -13,8 +13,8 @@ export class BlueflakeStack extends cdk.Stack {
     // DynamoDB設定
     const sequenceTable = new Table(this, "sequenceTable", {
       partitionKey: {
-        name: "timestamp",
-        type: AttributeType.NUMBER,
+        name: "timeStampAndRandomKey",
+        type: AttributeType.STRING,
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     })
